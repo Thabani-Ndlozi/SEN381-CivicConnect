@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: civicconnect
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/civicconnect}
+    username: ${DB_USERNAME:civicconnect}
+    password: ${DB_PASSWORD:}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+server:
+  error:
+    include-message: never

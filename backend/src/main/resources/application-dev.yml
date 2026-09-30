@@ -1,0 +1,11 @@
+civicconnect:
+  dev-users:
+    requester:
+      username: ${DEV_REQUESTER_USERNAME:requester}
+      password: ${DEV_REQUESTER_PASSWORD}
+    staff:
+      username: ${DEV_STAFF_USERNAME:staff}
+      password: ${DEV_STAFF_PASSWORD}
+    manager:
+      username: ${DEV_MANAGER_USERNAME:manager}
+      password: ${DEV_MANAGER_PASSWORD}

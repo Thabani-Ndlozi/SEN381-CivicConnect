@@ -1,0 +1,27 @@
+# Java / Maven
+target/
+*.log
+
+# Node
+node_modules/
+dist/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+backend/src/main/resources/application-local.yml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# TypeScript build cache
+*.tsbuildinfo
+frontend/vite.config.js
+frontend/vite.config.d.ts
