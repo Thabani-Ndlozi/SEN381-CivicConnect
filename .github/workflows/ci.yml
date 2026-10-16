@@ -1,67 +1,101 @@
-name: CivicConnect CI
-
+name: CivicConnect M3 quality gates
 on:
   pull_request:
-    branches: [ main ]
+    branches: [main]
   push:
-    branches: [ main ]
-
+    branches: [main]
+  workflow_dispatch:
 permissions:
   contents: read
-
 jobs:
   backend:
+    name: Backend tests and build
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Java 25
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '25'
           cache: maven
-
-      - name: Verify backend
+      - name: JUnit/component/API contract suite (hard gate)
         working-directory: backend
         run: mvn -B verify
-
+      - name: Upload Maven test XML
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-reports
+          path: backend/target/surefire-reports/**
+          if-no-files-found: warn
   frontend:
+    name: Frontend test / TypeScript static gate
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Node 24
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '24'
           cache: npm
           cache-dependency-path: frontend/package-lock.json
-
-      - name: Install dependencies
+      - run: npm ci --no-audit --no-fund
         working-directory: frontend
-        run: npm ci
-
-      - name: Test frontend when tests exist
+      - run: npm test
         working-directory: frontend
-        shell: bash
+      - name: Compile (TypeScript checks)
+        run: npm run build
+        working-directory: frontend
+      - name: Dependency vulnerability gate (high/critical production dependencies)
+        run: npm audit --omit=dev --audit-level=high
+        working-directory: frontend
+  security-static:
+    name: Repository static and secrets gates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Static anti-pattern and secret indicators
+        run: python3 scripts/check_source.py
+      - name: TruffleHog committed secret scan
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          extra_args: --only-verified
+  staging-smoke:
+    name: Simulated staging + API/E2E + performance
+    runs-on: ubuntu-latest
+    needs: [backend, frontend, security-static]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate ephemeral credentials
+        run: python3 scripts/setup_staging.py
+      - name: Build and start isolated staging
+        run: docker compose --env-file .env.staging -f compose.staging.yaml up -d --build
+      - name: Wait for release candidate health
         run: |
-          if find src -name "*.test.ts" -o -name "*.test.tsx" | grep -q .; then
-            npm test
-          else
-            echo "Frontend tests have not been integrated yet."
-            echo "Skipping frontend tests during bootstrap integration."
-          fi
-
-      - name: Build frontend when application exists
-        working-directory: frontend
-        shell: bash
+          for i in {1..45}; do
+            if curl --silent --fail http://127.0.0.1:8082/actuator/health >/dev/null; then exit 0; fi
+            sleep 4
+          done
+          docker compose --env-file .env.staging -f compose.staging.yaml logs --tail=80
+          exit 1
+      - name: Assert release identification
         run: |
-          if [ -f src/main.tsx ]; then
-            npm run build
-          else
-            echo "Frontend application source has not been integrated yet."
-            echo "Skipping frontend build during bootstrap integration."
-          fi
+          curl --silent --show-error --fail http://127.0.0.1:8082/api/release | tee evidence/release-identity.json
+          python3 -c 'import json; r=json.load(open("evidence/release-identity.json")); assert r.get("release") and r["release"]!="unversioned-local"'
+      - name: Live API / E2E verification (hard gate)
+        run: python3 scripts/smoke.py --base-url http://127.0.0.1:8082
+      - name: Small management summary load exercise
+        run: python3 scripts/performance.py --base-url http://127.0.0.1:8082
+      - name: Upload authentic staging evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: staging-execution-evidence
+          path: evidence/*.json
+          if-no-files-found: warn
+      - name: Print logs after failures
+        if: failure()
+        run: docker compose --env-file .env.staging -f compose.staging.yaml logs --tail=120
+      - name: Stop isolated staging
+        if: always()
+        run: docker compose --env-file .env.staging -f compose.staging.yaml down -v || true

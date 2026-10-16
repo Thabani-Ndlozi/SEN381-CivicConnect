@@ -67,10 +67,30 @@ public class SecurityConfig {
     }
 
     @Bean
-    UserDetailsService databaseUsers(org.springframework.jdbc.core.JdbcTemplate jdbc) {
-        return email -> jdbc.query("select email,password_hash,role,enabled from app_users where email = ?",
-            (rs, n) -> User.withUsername(rs.getString(1)).password(rs.getString(2))
-                .roles(rs.getString(3)).disabled(!rs.getBoolean(4)).build(), email.trim().toLowerCase(java.util.Locale.ROOT))
-            .stream().findFirst().orElseThrow(() -> new org.springframework.security.core.userdetails.UsernameNotFoundException("Invalid credentials"));
+    UserDetailsService databaseUsers(
+            org.springframework.jdbc.core.JdbcTemplate jdbc,
+            org.springframework.security.crypto.password.PasswordEncoder encoder,
+            @Value("${STAGING_REQUESTER_USERNAME:}") String reqUser,
+            @Value("${STAGING_REQUESTER_PASSWORD:}") String reqPw,
+            @Value("${STAGING_STAFF_USERNAME:}") String staffUser,
+            @Value("${STAGING_STAFF_PASSWORD:}") String staffPw,
+            @Value("${STAGING_MANAGER_USERNAME:}") String mgrUser,
+            @Value("${STAGING_MANAGER_PASSWORD:}") String mgrPw) {
+        return username -> {
+            String normalized = username.trim().toLowerCase(java.util.Locale.ROOT);
+            if (!reqUser.isBlank() && normalized.equalsIgnoreCase(reqUser.trim())) {
+                return User.withUsername(reqUser.trim()).password(encoder.encode(reqPw)).roles("REQUESTER").build();
+            }
+            if (!staffUser.isBlank() && normalized.equalsIgnoreCase(staffUser.trim())) {
+                return User.withUsername(staffUser.trim()).password(encoder.encode(staffPw)).roles("STAFF").build();
+            }
+            if (!mgrUser.isBlank() && normalized.equalsIgnoreCase(mgrUser.trim())) {
+                return User.withUsername(mgrUser.trim()).password(encoder.encode(mgrPw)).roles("MANAGER").build();
+            }
+            return jdbc.query("select email,password_hash,role,enabled from app_users where email = ?",
+                (rs, n) -> User.withUsername(rs.getString(1)).password(rs.getString(2))
+                    .roles(rs.getString(3)).disabled(!rs.getBoolean(4)).build(), normalized)
+                .stream().findFirst().orElseThrow(() -> new org.springframework.security.core.userdetails.UsernameNotFoundException("Invalid credentials"));
+        };
     }
 }

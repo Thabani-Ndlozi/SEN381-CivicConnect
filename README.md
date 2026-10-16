@@ -1,150 +1,76 @@
-## Milestone 2 — Implementation and Integration
+> **Authentication integration candidate:** See `FIREBASE_BREVO_CUTOVER_GUIDE.md` before enabling Firebase.
+> Sole designated Superuser: `inl2group13@gmail.com`, linked ONLY through trusted database bootstrap with verified Firebase UID.
+> Database V7 is non-destructive. Package needs full dependency build and runtime validation.
 
-CivicConnect Milestone 2 extends the existing engineering foundation with a Spring Boot backend, React/TypeScript frontend, PostgreSQL persistence environment, role-based development security, and pull-request CI.
+## New in this M3 package: Google Maps issue location
 
-### Technology baseline
+Requesters can use Google Places (New) address suggestions, a draggable issue pin, or permission-based current location. Staff, Managers and Requesters can view the saved exact coordinates and map in Request Details. Requires an HTTP-referrer-restricted Google Maps browser API key and enabled billing. **Read [`GOOGLE_MAPS_LOCATION_UPGRADE.md`](GOOGLE_MAPS_LOCATION_UPGRADE.md) before upgrading an existing database.** This adds Flyway V6; preserve your existing PostgreSQL volume and `.env` passwords.
 
-- React + TypeScript + Vite frontend
-- Java 25 + Spring Boot 4.1.1 backend
-- PostgreSQL 18.6
-- Flyway database migrations
-- Maven backend build
-- Node.js 24 frontend build environment
-- Docker Compose for local PostgreSQL
-- GitHub Actions for pull-request CI
+## M3 update: request photos, comment photos, Manager role filtering
 
-### Repository structure
+This complete-source package includes optional JPG/PNG photo uploads on new requests, private photo retrieval in Requester/Staff/Manager request details, images with Staff/Manager comments and status updates, and User Administration role filtering for Managers. The additive Flyway V5 migration preserves existing data. **Before upgrading, back up the database** and follow `M3_PHOTOS_AND_ROLE_FILTER.md` for installation, security behavior and the acceptance checklist. Java integration/database migrations and full live end-to-end tests are still pending in the recipient environment.
 
-```text
-backend/      Spring Boot backend
-frontend/     React + TypeScript + Vite frontend
-.github/      GitHub Actions CI workflow
-docs/         M2 technical and evidence documentation
-compose.yaml  Local PostgreSQL environment
-.env.example  Safe local configuration template
+# Updated authentication and GUI
+
+Start with [SETUP.md](SETUP.md) for the database accounts, unified login, manager provisioning, and validation notes. The milestone notes below describe the original baseline; their development-role accounts are superseded.
+
+# CivicConnect — Milestone 3 controlled release-candidate snapshot
+
+**Status: candidate source packaged; full staging/CI run not executed in this preparation environment.**
+This upgrades the submitted Milestone 2 Java/Spring Boot + React/TypeScript + PostgreSQL modular-monolith prototype rather than replacing it. No GitHub repository, branch protections, pull requests, or CI run has been changed remotely.
+
+## Core functionality
+- Requester submits validated, categorised requests, views their own requests and status/history feedback.
+- Staff queue and per-request detail; accept ownership once, enforce owner-only transitions, optimistic request-version check; require reason when rejecting/resolving/closing.
+- Manager status counts, category/status breakdown, and actor-aware audit timeline.
+- Role-based API access; staff actor IDs are omitted from requester feedback.
+- PostgreSQL Flyway migrations and transactional lifecycle audit writes; post-commit secondary notification listener.
+- React role flows, searching/category/status filters, chronology sorting, timeline view and on-screen form validation.
+- Local simulated staging with a version identification endpoint, repeatable live verification, and a small management-dashboard load exercise.
+
+**Known scope gap:** exact catalogue and status rules need stakeholder confirmation under original assumption **A-005**; overdue classification is not implemented until that rule is approved. Basic auth is for isolated staging/demo only, **not production**.
+
+## Quick start: assessor-accessible staging simulation
+Prerequisites: Docker Engine + Compose v2; images require network access during first build.
+
+```bash
+python3 scripts/setup_staging.py
+docker compose --env-file .env.staging -f compose.staging.yaml up -d --build
+# wait until http://localhost:8082/actuator/health is healthy
+curl http://localhost:8082/api/release
+python3 scripts/smoke.py --base-url http://localhost:8082
+python3 scripts/performance.py --base-url http://localhost:8082
 ```
 
-### Local configuration
+- Browser: **http://localhost:8081**; API at **http://localhost:8082** (bound to loopback).
+- Local credential values are in the generated **`.env.staging`**. Never commit/upload it. You can use the test role selector in the browser and enter the matching credentials.
+- Staging is separate from development and uses a separate PostgreSQL volume and Spring profile.
+- Save **CI run URL**, **exact Git commit/tag**, **actual smoke/performance output**, and approval evidence only after the team runs/verifies them.
+- Stop: `docker compose --env-file .env.staging -f compose.staging.yaml down` (retains data). For a disposable full reset only, run `... down -v` (deletes staging DB volume).
 
-Real development credentials must not be committed to the repository.
-
-Each developer should create a local `.env` file from `.env.example` and provide their own local values.
-
-PowerShell:
-
-```powershell
-Copy-Item .env.example .env
-```
-
-The populated `.env` file must remain local.
-
-### Database
-
-Start the local PostgreSQL service from the repository root:
-
-```powershell
+## Normal development
+```bash
+# PostgreSQL on localhost:5433 via the original M2 compose.yaml
+cp .env.example .env  # change all passwords locally
 docker compose up -d postgres
-docker compose ps
+cd backend && mvn -B verify && mvn spring-boot:run -Dspring-boot.run.profiles=dev
+# from another terminal
+cd frontend && npm ci && npm test && npm run dev
 ```
+Uses **Java 25**, **Maven 3.9+**, **Node 24**, **PostgreSQL 18.6** per M2 architecture decision. Development credentials are supplied via environment, not source. Production must not use in-memory Basic credentials.
 
-### Backend
+## Source layout
+- `backend/` and `frontend/`: evolved M2 prototype.
+- `.github/workflows/ci.yml`: PR/push gates (untested remotely until connected to GitHub).
+- `scripts/smoke.py`: live 6 API + 2 system E2E scenarios (needs staging).
+- `scripts/performance.py`: repeatable 40-request/4-worker load exercise (needs staging).
+- `scripts/check_source.py`: local limited static/security scan; run with Python 3.
+- `docs/m3/`: M3 evidence map, test matrix, staging plan, release evidence summary and demo/defence guide.
+- `docs/registers/`: continued RTM derived from the M2 PED entries and milestone registers.
+- `PED_v3.0_CivicConnect.pdf`: the original M2 PED pages retained in the expanded M3 document (evidence index and addendum).
+- `GITHUB_AFTER_READY.md`: human GitHub governance, review, and submission steps.
 
-Requirements:
+## Important assessment rules
+M3 requires **authentic** progressive commits, team-owned PRs with **two non-author approvals**, passing CI, staging demonstration, verified performance and tests, current RTM and PED. This ZIP prepares work for your review; it cannot manufacture historic repository activity or evidence of runs that did not happen. Do **not** submit the ZIP to Moodle in place of the PED/URL/tag unless your lecturer explicitly asks; the ZIP is a transfer package.
 
-- Java 25
-- Maven
-
-From the `backend` directory:
-
-```powershell
-mvn spring-boot:run "-Dspring-boot.run.profiles=dev"
-```
-
-Backend:
-
-```text
-http://localhost:8080
-```
-
-Health endpoint:
-
-```text
-http://localhost:8080/actuator/health
-```
-
-### Frontend
-
-Requirements:
-
-- Node.js 24
-- npm
-
-From the `frontend` directory:
-
-```powershell
-npm ci
-npm run dev
-```
-
-Frontend:
-
-```text
-http://localhost:5173
-```
-
-### Development security
-
-The M2 bootstrap provides development-only role-based Spring Security using HTTP Basic authentication.
-
-The development roles are:
-
-- `REQUESTER`
-- `STAFF`
-- `MANAGER`
-
-Development usernames and passwords are read from environment configuration and are not intended as the final production authentication solution.
-
-### Progressive M2 integration
-
-Milestone 2 is integrated progressively through separate feature branches and Pull Requests:
-
-1. Bootstrap, security, configuration and CI
-2. Persistence and audit
-3. Request lifecycle, REST API and role-based frontend
-
-Each substantive Pull Request must be reviewed by the two non-author team members before merge.
-
-### Verification
-
-Full integration verification is performed after all three M2 contributions have been merged into `main`.
-
-The final integrated repository should verify:
-
-- Backend tests
-- Frontend tests
-- Frontend production build
-- PostgreSQL and Flyway startup
-- Requester functionality
-- Staff functionality
-- Manager functionality
-- Persistence to `service_requests`
-- Audit records in `request_audit`
-- Role-based access control
-- No committed credentials
-
-### M2 evidence
-
-Implementation evidence should come from the controlled team repository and include:
-
-- GitHub Issues and assignees
-- Feature branches
-- Progressive commit history
-- Pull Requests linked to Issues
-- Two non-author approvals on substantive Pull Requests
-- CI/build/test results
-- Database and audit evidence
-- Working Requester, Staff and Manager paths
-- Review comments and resulting changes
-- AI Usage Register entries where applicable
-
-See `docs/m2-evidence-map.md` and `docs/code-comparison-checklist.md` for supporting M2 documentation.
+See `docs/m3/release-evidence-summary.md` before making a readiness claim.

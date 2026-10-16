@@ -1,0 +1,7 @@
+# HISTORICAL evidence from an earlier local build; not a passing result for V9 or submission main.
+# Refer to docs/m3/M3_TEST_EXECUTION_EVIDENCE_ADDENDUM.md and capture new proof.
+Frontend: TypeScript/Vite build passed; 7 unit tests passed.
+Backend: 37 existing tests passed with Java 17 compatibility override and Mockito premain agent.
+Database: V1-V4 migration execution and 14 RLS assertions passed in PGlite.
+Browser: requester/staff/manager UI, role menus, details, forms, mobile width, console errors passed using API fixtures.
+Not performed: full live Java/PostgreSQL integration or deployment. See SETUP.md.
