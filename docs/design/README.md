@@ -7,4 +7,5 @@ This folder contains CivicConnect Milestone 2 internal design evidence, includin
 - Selected design patterns or approaches
 - Trade-offs and consequences
 - Design diagrams where appropriate
+- [UI Kit & Screen Designs](ui-kit/README.md)
 - Related ADRs and implementation evidence
