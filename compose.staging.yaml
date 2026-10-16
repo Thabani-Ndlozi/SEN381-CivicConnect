@@ -8,6 +8,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Required}
     volumes:
       - civicconnect_staging_pgdata:/var/lib/postgresql
+      - ./database/init_staging.sh:/docker-entrypoint-initdb.d/init_staging.sh:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
@@ -18,8 +19,10 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: staging
       DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:?Required}
-      DB_USERNAME: ${POSTGRES_USER:?Required}
-      DB_PASSWORD: ${POSTGRES_PASSWORD:?Required}
+      DB_USERNAME: ${DB_USERNAME:-civicconnect_runtime}
+      DB_PASSWORD: ${DB_PASSWORD:-${POSTGRES_PASSWORD}}
+      MIGRATION_DB_USERNAME: ${MIGRATION_DB_USERNAME:-civicconnect_migrator}
+      MIGRATION_DB_PASSWORD: ${MIGRATION_DB_PASSWORD:-${POSTGRES_PASSWORD}}
       STAGING_REQUESTER_USERNAME: ${STAGING_REQUESTER_USERNAME:?Required}
       STAGING_REQUESTER_PASSWORD: ${STAGING_REQUESTER_PASSWORD:?Required}
       STAGING_STAFF_USERNAME: ${STAGING_STAFF_USERNAME:?Required}
