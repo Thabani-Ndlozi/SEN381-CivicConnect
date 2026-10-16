@@ -25,3 +25,13 @@ Thumbs.db
 *.tsbuildinfo
 frontend/vite.config.js
 frontend/vite.config.d.ts
+# Simulated staging secrets, runtime evidence and local build data
+.env.staging
+.env.staging.*
+!.env.staging.example
+.pytest_cache/
+__pycache__/
+evidence/*-results.json
+
+secrets/*.json
+*.dump

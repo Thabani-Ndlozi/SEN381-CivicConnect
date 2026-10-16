@@ -3,14 +3,20 @@ spring:
     name: civicconnect
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/civicconnect}
-    username: ${DB_USERNAME:civicconnect}
+    username: ${DB_USERNAME:civicconnect_runtime}
     password: ${DB_PASSWORD:}
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
   jpa:
     open-in-view: false
     hibernate:
       ddl-auto: validate
   flyway:
     enabled: true
+    user: ${MIGRATION_DB_USERNAME:civicconnect_migrator}
+    password: ${MIGRATION_DB_PASSWORD:}
 
 management:
   endpoints:
@@ -19,5 +25,22 @@ management:
         include: health,info
 
 server:
+  port: ${PORT:8080}
   error:
     include-message: never
+
+# Separate migration owner from the restricted application role.
+
+# Explicit cutover; legacy mode remains available for account migration.
+civic:
+  auth:
+    mode: ${AUTH_MODE:legacy}
+    firebase-project: ${FIREBASE_PROJECT_ID:}
+  email:
+    enabled: ${BREVO_NOTIFICATIONS_ENABLED:false}
+    brevo-key: ${BREVO_API_KEY:}
+    sender-name: ${BREVO_SENDER_NAME:CivicConnect}
+    sender-email: ${BREVO_SENDER_EMAIL:}
+    reply-to: ${BREVO_REPLY_TO:}
+    app-url: ${PUBLIC_APP_URL:http://localhost:8085}
+    logo-url: ${CIVICCONNECT_LOGO_URL:}

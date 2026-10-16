@@ -17,11 +17,11 @@ public record RequestView(
         String ownerId,
         Instant createdAt,
         Instant updatedAt,
-        long version
+        long version, String location, String priority, Double latitude, Double longitude
 ) {
     public static RequestView from(ServiceRequest request) {
         return new RequestView(request.getId(), request.getRequesterId(), request.getTitle(),
                 request.getDescription(), request.getCategory(), request.getStatus(),
-                request.getOwnerId(), request.getCreatedAt(), request.getUpdatedAt(), request.getVersion());
+                request.getOwnerId(), request.getCreatedAt(), request.getUpdatedAt(), request.getVersion(), request.getLocation(), request.getPriority(), request.getLatitude(), request.getLongitude());
     }
 }

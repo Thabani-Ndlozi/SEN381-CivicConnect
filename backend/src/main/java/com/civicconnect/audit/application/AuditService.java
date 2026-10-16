@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.UUID;
+import java.util.List;
 
 @Service
 public class AuditService {
@@ -13,6 +14,16 @@ public class AuditService {
 
     public AuditService(RequestAuditRepository repository) {
         this.repository = repository;
+    }
+
+    public List<AuditView> historyForRequester(UUID requestId) {
+        return repository.findByRequestIdOrderByOccurredAtAsc(requestId)
+                .stream().map(AuditView::requester).toList();
+    }
+
+    public List<AuditView> historyForManagement(UUID requestId) {
+        return repository.findByRequestIdOrderByOccurredAtAsc(requestId)
+                .stream().map(AuditView::management).toList();
     }
 
     public void record(UUID requestId, String actor, String action, String fromStatus,

@@ -1,0 +1,81 @@
+# Render Blueprint for CivicConnect staging. Database is an external Neon Free project.
+# Never deploy an administrator Neon database credential as DB_USERNAME.
+services:
+  - type: web
+    name: civicconnect-api-staging
+    runtime: docker
+    plan: free
+    region: ohio
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /actuator/health
+    autoDeployTrigger: off
+    envVars:
+      - key: AUTH_MODE
+        value: firebase
+      - key: FIREBASE_PROJECT_ID
+        value: civicconnect-3ed04
+      - key: GOOGLE_APPLICATION_CREDENTIALS
+        value: /etc/secrets/firebase-service-account.json
+      - key: JAVA_TOOL_OPTIONS
+        value: -Xmx220m -XX:MaxMetaspaceSize=128m -XX:ReservedCodeCacheSize=32m -XX:+UseSerialGC
+      - key: SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE
+        value: '3'
+      - key: SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE
+        value: '0'
+      - key: DB_URL
+        sync: false
+      - key: DB_USERNAME
+        value: civicconnect_runtime
+      - key: DB_PASSWORD
+        sync: false
+      - key: MIGRATION_DB_USERNAME
+        value: civicconnect_migrator
+      - key: MIGRATION_DB_PASSWORD
+        sync: false
+      - key: STAGING_WEB_ORIGIN
+        sync: false
+      - key: PUBLIC_APP_URL
+        sync: false
+      - key: BREVO_API_KEY
+        sync: false
+      - key: BREVO_NOTIFICATIONS_ENABLED
+        value: 'false'
+      - key: BREVO_SENDER_NAME
+        value: CivicConnect
+      - key: BREVO_SENDER_EMAIL
+        value: inl2group13@gmail.com
+      - key: BREVO_REPLY_TO
+        value: inl2group13@gmail.com
+      - key: CIVICCONNECT_LOGO_URL
+        sync: false
+
+  - type: web
+    name: civicconnect-web-staging
+    runtime: static
+    buildCommand: cd frontend && npm install --no-audit --no-fund && npm run build
+    staticPublishPath: ./frontend/dist
+    autoDeployTrigger: off
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_AUTH_MODE
+        value: firebase
+      - key: VITE_API_BASE_URL
+        sync: false
+      - key: VITE_FIREBASE_PROJECT_ID
+        value: civicconnect-3ed04
+      - key: VITE_FIREBASE_AUTH_DOMAIN
+        value: civicconnect-3ed04.firebaseapp.com
+      - key: VITE_FIREBASE_API_KEY
+        sync: false
+      - key: VITE_FIREBASE_APP_ID
+        sync: false
+      - key: VITE_FIREBASE_MESSAGING_SENDER_ID
+        sync: false
+      - key: VITE_GOOGLE_MAPS_API_KEY
+        sync: false
+      - key: VITE_GOOGLE_MAPS_MAP_ID
+        sync: false
