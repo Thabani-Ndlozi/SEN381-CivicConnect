@@ -13,4 +13,5 @@ public interface ServiceRequestRepository extends JpaRepository<ServiceRequest, 
     List<ServiceRequest> findByStatusOrderByCreatedAtDesc(RequestStatus status);
     List<ServiceRequest> findByCategoryOrderByCreatedAtDesc(RequestCategory category);
     long countByStatus(RequestStatus status);
+    long countByCategoryAndStatus(RequestCategory category, RequestStatus status);
 }

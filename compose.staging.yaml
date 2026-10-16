@@ -1,0 +1,42 @@
+# Isolated simulation; do not publish as a production service.
+services:
+  postgres:
+    image: postgres:18.6
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?Required}
+      POSTGRES_USER: ${POSTGRES_USER:?Required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Required}
+    volumes:
+      - civicconnect_staging_pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  api:
+    build: ./backend
+    environment:
+      SPRING_PROFILES_ACTIVE: staging
+      DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:?Required}
+      DB_USERNAME: ${POSTGRES_USER:?Required}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:?Required}
+      STAGING_REQUESTER_USERNAME: ${STAGING_REQUESTER_USERNAME:?Required}
+      STAGING_REQUESTER_PASSWORD: ${STAGING_REQUESTER_PASSWORD:?Required}
+      STAGING_STAFF_USERNAME: ${STAGING_STAFF_USERNAME:?Required}
+      STAGING_STAFF_PASSWORD: ${STAGING_STAFF_PASSWORD:?Required}
+      STAGING_MANAGER_USERNAME: ${STAGING_MANAGER_USERNAME:?Required}
+      STAGING_MANAGER_PASSWORD: ${STAGING_MANAGER_PASSWORD:?Required}
+      CIVICCONNECT_RELEASE_ID: ${RC_VERSION:?Required}
+    ports:
+      - "127.0.0.1:8082:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+  web:
+    build: ./frontend
+    ports:
+      - "127.0.0.1:8081:80"
+    depends_on:
+      - api
+volumes:
+  civicconnect_staging_pgdata:

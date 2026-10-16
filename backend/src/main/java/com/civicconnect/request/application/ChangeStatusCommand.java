@@ -6,5 +6,6 @@ import jakarta.validation.constraints.Size;
 
 public record ChangeStatusCommand(
         @NotNull RequestStatus targetStatus,
-        @Size(max = 2000) String comment
+        @Size(max = 2000) String comment,
+        @NotNull Long version
 ) {}

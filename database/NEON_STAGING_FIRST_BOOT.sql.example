@@ -1,0 +1,22 @@
+-- FIRST: run these commands manually in the Neon SQL Editor while connected as
+-- your existing Neon project administrator role. Use strong distinct passwords.
+-- DO NOT commit real passwords or the Superuser UID to GitHub.
+-- Before the first Render deploy (empty database):
+CREATE ROLE civicconnect_migrator LOGIN NOSUPERUSER NOBYPASSRLS PASSWORD '<distinct_migration_password>';
+CREATE ROLE civicconnect_runtime  LOGIN NOSUPERUSER NOBYPASSRLS PASSWORD '<distinct_runtime_password>';
+GRANT USAGE, CREATE ON SCHEMA public TO civicconnect_migrator;
+GRANT USAGE ON SCHEMA public TO civicconnect_runtime;
+
+-- SECOND: after the API deploy applies Flyway V1--V8, check migration status.
+-- SELECT version, description, success FROM flyway_schema_history ORDER BY installed_rank;
+-- The admin role is authorized to bootstrap; runtime role must NOT do it.
+-- Verify the UID belongs to verified Firebase email inl2group13@gmail.com.
+-- Replace <verified_firebase_uid> with that exact UID only in private Neon SQL Editor.
+INSERT INTO app_users(email, full_name, password_hash, role, department, firebase_uid, enabled)
+VALUES('inl2group13@gmail.com','CivicConnect Superuser','!firebase-only!','SUPERUSER',NULL,'<verified_firebase_uid>',true);
+-- Run the INSERT only once on an empty staging database; do not duplicate Superusers.
+
+-- THIRD: check the separate application role DOES NOT inherit BYPASSRLS:
+-- SELECT rolname, rolbypassrls, rolsuper FROM pg_roles
+--   WHERE rolname IN ('civicconnect_runtime','civicconnect_migrator');
+-- Both rows must have false for rolbypassrls and rolsuper.

@@ -1,6 +1,8 @@
 package com.civicconnect.request.domain;
 
 import jakarta.persistence.*;
+import com.civicconnect.shared.ConflictException;
+import org.springframework.security.access.AccessDeniedException;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -40,6 +42,20 @@ public class ServiceRequest {
     @Column(nullable = false)
     private long version;
 
+    @Column(length=500) private String location;
+    @Column(length=20) private String priority;
+    @Column(name = "latitude") private Double latitude;
+    @Column(name = "longitude") private Double longitude;
+    public String getLocation() { return location; }
+    public String getPriority() { return priority; }
+    public Double getLatitude() { return latitude; }
+    public Double getLongitude() { return longitude; }
+    public void setDetails(String location, String priority, Double latitude, Double longitude) {
+        this.location = location;
+        this.priority = priority;
+        this.latitude = latitude;
+        this.longitude = longitude;
+    }
     protected ServiceRequest() {}
 
     private ServiceRequest(UUID id, String requesterId, String title, String description,
@@ -60,11 +76,20 @@ public class ServiceRequest {
     }
 
     public void assignTo(String staffId, Instant now) {
+        if (staffId == null || staffId.isBlank() || ownerId != null || status != RequestStatus.SUBMITTED) {
+            throw new ConflictException("Only an unassigned submitted request can be accepted.");
+        }
         this.ownerId = staffId;
         if (this.status == RequestStatus.SUBMITTED) {
             this.status = RequestStatus.ACCEPTED;
         }
         this.updatedAt = now;
+    }
+
+    public void assertOwnedBy(String staffId) {
+        if (ownerId == null || !ownerId.equals(staffId)) {
+            throw new AccessDeniedException("Only the current owner may change this request.");
+        }
     }
 
     public void changeStatus(RequestStatus targetStatus, Instant now) {

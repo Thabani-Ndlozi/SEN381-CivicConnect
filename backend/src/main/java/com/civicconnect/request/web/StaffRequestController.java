@@ -24,6 +24,11 @@ public class StaffRequestController {
         return service.allRequests();
     }
 
+    @GetMapping("/{id}")
+    public RequestView detail(@PathVariable UUID id) {
+        return service.staffDetail(id);
+    }
+
     @PostMapping("/{id}/accept")
     public RequestView accept(@PathVariable UUID id, Principal principal) {
         return service.acceptOwnership(id, principal.getName());
