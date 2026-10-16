@@ -1,0 +1,7 @@
+Defect ID,Related requirement,Severity,Observed M2 source gap,Source change / mitigation,Regression test,Verification status
+DEF-001,FR-006;NFR-002,High,"Accepted request could be silently reassigned by any staff",ServiceRequest.assignTo rejects unowned/submitted violations,ServiceRequestRulesTest.conflictingStaffCannotTakeOverAcceptedRequest,Fix in source; regression not executed
+DEF-002,FR-007,High,"Version was stored but not required in change-status API as M2 design intended",ChangeStatusCommand.version and RequestService stale version conflict,RequestServiceM3Test.staleVersionRejectedBeforeAudit,Fix in source; regression not executed
+DEF-003,FR-004;FR-010,High,"No API/UI to view requester or manager audit events",AuditView projections and role routes; UI timeline,E2E01;E2E02;API06,Fix in source; regression not executed
+DEF-004,FR-009,Medium,"Overdue rule unapproved (assumption A-005)",No fabricated overdue result; stakeholder decision required,Manual business acceptance pending,Open - scope blocker
+DEF-005,NFR-001,Medium,"UI full browser workflow not yet human validated",Role demo checklist and API system journeys,Manual acceptance demo,Open - human acceptance
+DEF-006,FR-008,Medium,"Resolution or rejection could be recorded without an explanation",Required nonblank reasons for RESOLVED/REJECTED/CLOSED,RequestServiceM3Test.resolutionWithoutExplanationIsRejected,Fix in source; regression not executed
