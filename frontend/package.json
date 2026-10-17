@@ -22,5 +22,9 @@
     "vite": "^8.1.0",
     "vitest": "^5.0.0",
     "@vitejs/plugin-react": "^5.0.0"
+  },
+  "overrides": {
+    "@grpc/grpc-js": "^1.14.6",
+    "source-map-js": "^1.2.2"
   }
 }

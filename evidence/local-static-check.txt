@@ -1,0 +1,12 @@
+# HISTORICAL local source-scan result; rerun on the final main commit.
+CHECK DATE UTC: 2026-10-12T05:03:29Z
+PASS: Python M3 tool scripts syntax valid
+PASS: limited local static/secret-pattern checks; dedicated dependency audit runs in CI
+
+NOT EXECUTED: Maven/JUnit, npm/Vitest, Docker/Compose, staging E2E, GitHub CI and performance.
+Cause: Java 25, Maven, Docker and dependency download/network resolution unavailable in the preparation environment.
+PASS: TypeScript/TSX syntax parsed locally with globally available TypeScript parser (not full typecheck/build).
+PASS: YAML parse of Compose staging and CI workflow.
+PASS: continued RTM 14 rows; PED v3 PDF includes unchanged 31 PED v2 source pages (36 pages total).
+PASS: 25 Java @Test declarations plus 9 CSV decision-table cases located (NOT RUN).
+NOT RUN: actual Java compile, npm dependency install, CI, Docker, API, load or end-user acceptance.

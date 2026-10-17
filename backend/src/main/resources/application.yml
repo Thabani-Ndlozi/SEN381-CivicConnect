@@ -15,8 +15,8 @@ spring:
       ddl-auto: validate
   flyway:
     enabled: true
-    user: ${MIGRATION_DB_USERNAME:civicconnect_migrator}
-    password: ${MIGRATION_DB_PASSWORD:}
+    user: ${MIGRATION_DB_USERNAME:${spring.datasource.username}}
+    password: ${MIGRATION_DB_PASSWORD:${spring.datasource.password}}
 
 management:
   endpoints:
