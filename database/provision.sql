@@ -14,3 +14,11 @@ ALTER DEFAULT PRIVILEGES FOR ROLE civicconnect_migrator IN SCHEMA public GRANT S
 SELECT format('ALTER TABLE public.%I OWNER TO civicconnect_migrator',tablename)
 FROM pg_tables WHERE schemaname='public' AND tablename IN ('service_requests','request_audit','flyway_schema_history') \gexec
 GRANT SELECT,INSERT,UPDATE ON ALL TABLES IN SCHEMA public TO civicconnect_runtime;
+DO $$
+BEGIN
+  IF EXISTS (SELECT FROM pg_tables WHERE schemaname='public' AND tablename='app_users') THEN
+    REVOKE UPDATE ON public.app_users FROM civicconnect_runtime;
+    GRANT UPDATE (password_hash, enabled) ON public.app_users TO civicconnect_runtime;
+  END IF;
+END
+$$;
