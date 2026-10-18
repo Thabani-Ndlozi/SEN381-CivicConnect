@@ -4,7 +4,7 @@ Key: [x] packaged in source/document; [ ] external execution/approval required; 
 
 - [x] Integrated increment in existing M2 React/Java/PostgreSQL tree (source-level, not yet runtime proven).
 - [x] Original PED v2.0 retained as history inside expanded PED v3.0 PDF.
-- [x] RTM continuation with original IDs/AC references, M2 designs, M3 components, planned tests and status; **[~] original live editable RTM reconciliation pending**.
+- [x] RTM continuation with original IDs/AC references, M2 designs, M3 components, planned tests and status; **[x] live editable RTM reconciliation completed in docs/registers/RTM_CONTINUED.csv and docs/requirements/RTM.md**.
 - [x] Risk register continuity, ADRs/change log, defect, technical debt, AI register.
 - [x] Meaningful test definitions: >=5 unit, >=5 black-box, >=3 API, >=2 E2E; >=3 negative; >=5 high-risk; two black-box techniques (BVA + equivalence partition and decision/state table).
 - [x] CI workflow build/unit/frontend/static/security/dependency/staging scripts and hard failure rules; [ ] live workflow pass and CI URL.
