@@ -1,0 +1,8 @@
+Debt ID,Area,Current compromise,Impact,Proposed repayment,Priority,Owner,Status
+DEBT-001,Authentication,"HTTP Basic and in-memory staging users (no IAM/token handling)",Unsafe on public network,Implement stakeholder-approved identity provider OAuth/OIDC and TLS,High,Security lead,Open
+DEBT-002,Rules,"Status/category/overdue rules remain provisional under A-005",Incorrect business acceptance or reporting,Confirm stakeholder policy then version rules and tests,High,Product lead,Open
+DEBT-003,Performance,"No baseline measured in current preparation environment",Unknown representative response time,Run staged load and production-like sizing tests,High,QA lead,Open
+DEBT-004,UX,"Search/filter/sort is client side; accessibility/human validation outstanding",Not scalable and usability unproven,Introduce paginated server filters and accessibility review,Medium,Frontend lead,Open
+DEBT-005,Notifications,"In-process event listener logs but no outbound requester notification",Users must revisit history for updates,Integrate approved notification channel with retries once scoped,Medium,Backend lead,Open
+DEBT-006,Recovery,"No versioned backup/restore drill; staging volume only",No proven data recovery,Document backup and test restore in isolated environment,High,Deployment lead,Open
+DEBT-007,Test harness,"Local dependency downloads unavailable; full build cannot be validated in this workspace",Release claim depends on later CI,Run Maven/npm/Compose pipeline and fix failures before tag,High,All team,Open

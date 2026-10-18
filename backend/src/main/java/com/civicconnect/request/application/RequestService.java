@@ -89,10 +89,7 @@ public class RequestService {
             ServiceRequest request = get(requestId);
             if (!(request.getStatus() == RequestStatus.SUBMITTED &&
                   command.targetStatus() == RequestStatus.REJECTED)) {
-                boolean manager = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication() != null &&
-                    org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
-                        .anyMatch(a -> (a.getAuthority().equals("ROLE_MANAGER") || a.getAuthority().equals("ROLE_SUPERUSER")));
-                if (!manager) request.assertOwnedBy(actor);
+                request.assertOwnedBy(actor);
             }
             if (!Long.valueOf(request.getVersion()).equals(command.version())) {
                 throw new com.civicconnect.shared.ConflictException("The request version is stale. Reload and try again.");
